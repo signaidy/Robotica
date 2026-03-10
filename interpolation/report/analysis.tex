@@ -1,0 +1,114 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\title{Analisis de Interpolacion en Rotacion y Escalado}
+\author{}
+\date{2026-03-10}
+
+\begin{document}
+\maketitle
+
+\section*{Objetivo}
+Evaluar como los metodos de interpolacion (nearest neighbor, bilinear y bicubic)
+afectan la calidad de la imagen al rotar y escalar, con enfasis en la legibilidad
+de texto.
+
+\section*{Datos y salidas}
+Se trabajaron imagenes ubicadas en \texttt{interpolation/imagen}. Los resultados
+se guardaron en:
+\begin{itemize}
+  \item \texttt{manipulated/interpolation}: escalado 2x con cada interpolacion.
+  \item \texttt{manipulated/rotations}: rotacion 45 y 90 grados (sin escalar).
+  \item \texttt{manipulated/RnS}: rotacion (45, 90) y luego escalado 2x.
+  \item \texttt{manipulated/RnSText}: \texttt{text.png} rotado 90 grados y luego
+        escalado 2x con cada interpolacion.
+  \item \texttt{manipulated/TextInterpolate50}: \texttt{text.png} escalado 50\%.
+  \item \texttt{manipulated/TextInterpolate200}: \texttt{text.png} escalado 200\%.
+\end{itemize}
+
+\section*{Metodologia}
+Se compararon tres metodos de interpolacion:
+\begin{itemize}
+  \item \textbf{Nearest neighbor}: replica el pixel mas cercano (rapido, pero con
+        aliasing).
+  \item \textbf{Bilinear}: promedio lineal 2D (suaviza, reduce aliasing).
+  \item \textbf{Bicubic}: interpolacion cubica (mejor preservacion de detalle,
+        posible halo/ringing).
+\end{itemize}
+
+\section*{Resultados y analisis}
+
+\subsection*{Rotacion (imagenes generales)}
+\textbf{Como afectan los metodos de interpolacion al resultado de la rotacion?}
+
+En rotaciones no multiples de 90 grados, la interpolacion es critica porque se
+re-muestrea la imagen. En general:
+\begin{itemize}
+  \item \textbf{Nearest} produce bordes dentados (aliasing) en diagonales y
+        contornos, especialmente visibles en lineas finas.
+  \item \textbf{Bilinear} reduce el aliasing pero suaviza texturas y bordes.
+  \item \textbf{Bicubic} mantiene mas detalle que bilinear, aunque puede generar
+        ligeros halos alrededor de bordes de alto contraste.
+\end{itemize}
+
+\textbf{Que metodo mantiene mejor la calidad de la imagen original?}
+Para imagenes naturales, \textbf{bicubic} suele ofrecer la mejor conservacion
+de detalle percibido con menos degradacion global. \textbf{Bilinear} es un buen
+compromiso entre suavizado y nitidez. \textbf{Nearest} es el menos fiel por el
+aliasing visible.
+
+\subsection*{Texto (\texttt{text.png})}
+\textbf{Que metodo conserva mejor la legibilidad del texto?}
+
+Para texto de alto contraste:
+\begin{itemize}
+  \item \textbf{Nearest} mantiene bordes muy definidos pero introduce escalones
+        en diagonales y curvas; aun asi, suele conservar la legibilidad porque
+        preserva el contraste.
+  \item \textbf{Bilinear} suaviza bordes y puede adelgazar trazos finos, lo cual
+        reduce ligeramente la legibilidad.
+  \item \textbf{Bicubic} puede introducir halos suaves alrededor de letras,
+        especialmente al rotar 90 y escalar 2x, lo que puede afectar contornos.
+\end{itemize}
+
+En este contexto, \textbf{nearest} suele mantener la legibilidad mejor en texto
+pequeno y de alto contraste, aunque con aliasing visible. Si se prioriza un
+aspecto mas suave y menos ``pixelado'', \textbf{bilinear} es una alternativa
+equilibrada.
+
+\subsection*{Escalado 50\% y 200\% (sin rotacion)}
+\textbf{Calidad de la imagen final.}
+
+\begin{itemize}
+  \item \textbf{50\%}: bilinear y bicubic reducen aliasing, pero pierden algo de
+        nitidez. Nearest mantiene nitidez de bordes a costa de legibilidad.
+  \item \textbf{200\%}: bicubic tiende a preservar mas detalle y suavidad, mientras
+        bilinear es mas suave pero con menos detalle. Nearest amplifica pixeles y
+        se ve mas ``cuadriculado''.
+\end{itemize}
+
+\section*{Resumen comparativo}
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Caso & Nearest & Bilinear & Bicubic \\ \midrule
+Rotacion & Aliasing visible & Suavizado moderado & Mejor detalle, posible halo \\
+Texto (legibilidad) & Alta, con escalones & Media, mas suave & Media, posible halo \\
+Escalado 50\% & Aliasing & Suave & Mejor equilibrio \\
+Escalado 200\% & Pixelado & Suave & Mejor detalle \\ \bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Conclusiones}
+\begin{itemize}
+  \item Para imagenes naturales y rotaciones, \textbf{bicubic} suele conservar
+        mejor la calidad percibida.
+  \item Para texto, \textbf{nearest} tiende a preservar la legibilidad por el
+        contraste y la nitidez de bordes, aunque con aliasing.
+  \item \textbf{Bilinear} es un compromiso cuando se busca reducir artefactos a
+        costa de un leve suavizado.
+\end{itemize}
+
+\end{document}
